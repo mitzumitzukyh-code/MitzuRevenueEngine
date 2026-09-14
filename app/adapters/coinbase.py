@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import httpx
 
 from app.adapters.base import DiscoveredOpportunity
+from app.market_taxonomy import functional_category
 
 _USDC_ASSETS = {
     "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
@@ -62,7 +63,7 @@ class CoinbaseBazaarAdapter:
                     calls = int(quality.get("l30DaysTotalCalls") or 0)
                     payers = int(quality.get("l30DaysUniquePayers") or 0)
                     tags = item.get("tags") or []
-                    category = str(tags[0]) if tags else "uncategorized"
+                    category = functional_category(tags=tags, description=str(item.get("description") or ""), resource=resource)
                     service_name = str(item.get("serviceName") or urlparse(resource).netloc or resource)
                     description = str(item.get("description") or "")
                     external_id = "coinbase:" + hashlib.sha256(resource.encode()).hexdigest()[:32]
