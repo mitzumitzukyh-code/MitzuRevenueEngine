@@ -8,6 +8,19 @@ from app.policy import decide
 def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord, bool]:
     existing = db.scalar(select(OpportunityRecord).where(OpportunityRecord.external_id == item.external_id))
     if existing:
+        existing.title = item.title
+        existing.url = item.url
+        existing.category = item.category
+        existing.provider = item.provider
+        existing.network = item.network
+        existing.asset = item.asset
+        existing.price_atomic = item.price_atomic
+        existing.pay_to = item.pay_to
+        existing.calls_30d = item.calls_30d
+        existing.unique_payers_30d = item.unique_payers_30d
+        existing.estimated_volume_30d_usd = item.estimated_volume_30d_usd
+        db.commit()
+        db.refresh(existing)
         return existing, False
     op = Opportunity(
         source=item.source, title=item.title,
