@@ -9,6 +9,18 @@ services:
       WALLET_ENABLED: "false"
     depends_on:
       - db
+  scout:
+    build: .
+    command: ["python", "-m", "app.scout_main"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://mitzu:mitzu@db:5432/mitzu
+      SCOUT_ENABLED: "true"
+      SCOUT_INTERVAL_SECONDS: "900"
+      AUTONOMOUS_EXECUTION: "false"
+      WALLET_ENABLED: "false"
+    depends_on:
+      - db
+    restart: unless-stopped
   db:
     image: postgres:16-alpine
     environment:
