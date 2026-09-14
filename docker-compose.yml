@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://mitzu:mitzu@db:5432/mitzu
+      AUTONOMOUS_EXECUTION: "false"
+      WALLET_ENABLED: "false"
+    depends_on:
+      - db
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mitzu
+      POSTGRES_PASSWORD: mitzu
+      POSTGRES_DB: mitzu
+    volumes:
+      - mitzu-db:/var/lib/postgresql/data
+volumes:
+  mitzu-db:
