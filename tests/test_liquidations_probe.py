@@ -1,4 +1,3 @@
-import pytest
 from app.services.liquidations_probe import ProbeResult
 
 def test_probe_result_explicitly_tracks_cost_verification():
