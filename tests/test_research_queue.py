@@ -15,8 +15,8 @@ def test_research_candidate_requires_proven_non_saturated_watch_market():
         source="coinbase_bazaar",
         category="content",
         buyers_30d=20,
-        transactions_30d=100,
-        volume_30d_usd=100,
+        transactions_30d=500,
+        volume_30d_usd=500,
     ))
     for i in range(3):
         db.add(OpportunityRecord(
