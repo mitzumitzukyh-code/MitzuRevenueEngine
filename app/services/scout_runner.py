@@ -17,12 +17,14 @@ class ScoutRunner:
             for item in items:
                 _, is_new = ingest(db, item)
                 created += int(is_new)
-            record_event(db, kind="scan", worker="scout",
-                         message=f"Circle x402 scan complete: {len(items)} seen, {created} new")
+            message = f"Circle x402 scan complete: {len(items)} seen, {created} new"
+            record_event(db, kind="scan", worker="scout", message=message)
+            print(message, flush=True)
             return {"seen": len(items), "new": created}
         except Exception as exc:
-            record_event(db, kind="error", worker="scout",
-                         message=f"{type(exc).__name__}: {exc}", is_error=True)
+            message = f"{type(exc).__name__}: {exc}"
+            record_event(db, kind="error", worker="scout", message=message, is_error=True)
+            print(f"Scout error: {message}", flush=True)
             raise
         finally:
             db.close()
