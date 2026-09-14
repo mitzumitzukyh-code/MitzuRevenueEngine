@@ -94,3 +94,49 @@ def market_networks(db: Session = Depends(get_db)):
         .order_by(func.count(OpportunityRecord.id).desc())
     ).all()
     return [{"network": network, "services": count} for network, count in rows]
+
+
+from pydantic import BaseModel
+from app.models import MarketMetric
+from app.services.market_intelligence import score_category
+
+class MarketMetricIn(BaseModel):
+    source: str
+    category: str
+    buyers_30d: int = 0
+    transactions_30d: int = 0
+    volume_30d_usd: float = 0
+
+@app.post("/api/market/metrics")
+def add_market_metric(payload: MarketMetricIn, db: Session = Depends(get_db)):
+    row = MarketMetric(
+        source=payload.source,
+        category=payload.category,
+        buyers_30d=max(payload.buyers_30d, 0),
+        transactions_30d=max(payload.transactions_30d, 0),
+        volume_30d_usd=max(payload.volume_30d_usd, 0),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"id": row.id, "status": "stored"}
+
+@app.get("/api/market/opportunities")
+def market_opportunities(db: Session = Depends(get_db)):
+    categories = db.scalars(
+        select(OpportunityRecord.category)
+        .where(OpportunityRecord.category != "")
+        .distinct()
+    ).all()
+    result = []
+    for category in categories:
+        scored = score_category(db, category)
+        if scored:
+            result.append({
+                "category": category,
+                "demand_score": scored.demand,
+                "competition_score": scored.competition,
+                "opportunity_score": scored.opportunity,
+                "decision": scored.decision,
+            })
+    return sorted(result, key=lambda x: x["opportunity_score"], reverse=True)
