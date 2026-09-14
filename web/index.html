@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mitzu Revenue Engine</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#080b12;color:#edf2ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#14213b 0,#080b12 42%);min-height:100vh}
+main{max-width:1180px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.brand{font-size:22px;font-weight:800}.online{color:#65f5a3}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:#0e1420cc;border:1px solid #222d40;border-radius:16px;padding:18px;box-shadow:0 10px 30px #0004}
+.big{font-size:30px;font-weight:800;margin-top:8px}.muted{color:#8d9bb2;font-size:13px}.positive{color:#65f5a3}
+.panel{margin-top:14px}.row{display:flex;justify-content:space-between;border-top:1px solid #202a3a;padding:12px 0;font-size:14px}
+.badge{padding:4px 8px;border-radius:999px;background:#172234}.danger{color:#ff7785}
+@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}main{padding:18px}}
+</style></head>
+<body><main>
+<div class="top"><div><div class="brand">MITZU REVENUE ENGINE</div><div class="muted">Autonomous operations dashboard</div></div><div class="online">● ONLINE</div></div>
+<div class="grid">
+<div class="card"><div class="muted">NET PROFIT · TODAY</div><div id="profit" class="big positive">$0.00</div></div>
+<div class="card"><div class="muted">REVENUE</div><div id="revenue" class="big">$0.00</div></div>
+<div class="card"><div class="muted">COST</div><div id="cost" class="big">$0.00</div></div>
+<div class="card"><div class="muted">OPPORTUNITIES</div><div id="ops" class="big">0</div></div>
+</div>
+<div class="card panel"><div class="top"><b>ACTIVITY</b><span class="badge">LIVE</span></div><div id="activity"><div class="muted">Waiting for worker activity…</div></div></div>
+<div class="card panel"><div class="top"><b>ERRORS / RECOVERY</b><span class="badge">AUDIT</span></div><div id="errors"><div class="muted">No errors recorded.</div></div></div>
+</main>
+<script>
+const money=n=>'$'+Number(n||0).toFixed(2);
+async function refresh(){
+ try{
+  const s=await fetch('/api/dashboard/summary').then(r=>r.json());
+  profit.textContent=money(s.net_profit_today_usd); revenue.textContent=money(s.revenue_today_usd);
+  cost.textContent=money(s.cost_today_usd); ops.textContent=s.opportunities_seen;
+  const a=await fetch('/api/activity?limit=15').then(r=>r.json());
+  activity.innerHTML=a.length?a.map(x=>'<div class="row"><span>'+x.worker+' · '+x.message+'</span><span class="muted">'+new Date(x.created_at).toLocaleTimeString()+'</span></div>').join(''):'<div class="muted">Waiting for worker activity…</div>';
+  const e=await fetch('/api/errors?limit=10').then(r=>r.json());
+  errors.innerHTML=e.length?e.map(x=>'<div class="row"><span class="danger">'+x.worker+' · '+x.message+'</span><span>'+(x.recovered?'RECOVERED':'OPEN')+'</span></div>').join(''):'<div class="muted">No errors recorded.</div>';
+ }catch(e){}
+}
+refresh();setInterval(refresh,5000);
+</script></body></html>
