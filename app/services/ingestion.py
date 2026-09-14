@@ -4,7 +4,6 @@ from app.adapters.base import DiscoveredOpportunity
 from app.domain import Opportunity
 from app.models import OpportunityRecord
 from app.policy import decide
-from app.scoring import score
 
 def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord, bool]:
     existing = db.scalar(select(OpportunityRecord).where(OpportunityRecord.external_id == item.external_id))
@@ -19,7 +18,6 @@ def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord,
         success_probability=item.success_probability,
     )
     decision = decide(op)
-    scored = score(op)
     row = OpportunityRecord(
         source=item.source, external_id=item.external_id, title=item.title, url=item.url,
         expected_revenue_usd=item.expected_revenue_usd, estimated_cost_usd=item.estimated_cost_usd,
