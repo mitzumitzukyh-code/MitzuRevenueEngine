@@ -27,6 +27,7 @@ main{max-width:1180px;margin:auto;padding:28px}.top{display:flex;justify-content
 <div class="card panel"><div class="top"><b>BUILD CANDIDATES</b><span class="badge">EVIDENCE</span></div><div id="builds" class="muted">No BUILD candidates yet.</div></div>
 <div class="card panel"><div class="top"><b>PRODUCT PLANS</b><span class="badge">PLANNED</span></div><div id="products" class="muted">No product plans yet.</div></div>
 <div class="card panel"><div class="top"><b>SERVICE FACTORY</b><span class="badge">SANDBOX</span></div><div id="factory" class="muted">No service blueprints yet.</div></div>
+<div class="card panel"><div class="top"><b>SANDBOX RUNTIME</b><span class="badge">ZERO SPEND</span></div><div id="runtime"><div class="muted">Runtime endpoints are generated for BUILD candidates. No payment execution is enabled.</div></div></div>
 <div class="card panel"><div class="top"><b>ERRORS / RECOVERY</b><span class="badge">AUDIT</span></div><div id="errors" class="muted">No errors recorded.</div></div>
 </main>
 <script>
@@ -53,6 +54,7 @@ async function refresh(){
   const f=await fetch('/api/factory/blueprints').then(r=>r.json());
   factory.innerHTML=rows(f.slice(0,10),x=>'<div class="row"><span>'+x.blueprint.product_name+'</span><span>'+x.factory_status+' · '+x.deploy_status+' · '+x.blueprint.route+'</span></div>','No service blueprints yet.');
 
+  runtime.innerHTML=f.length?f.slice(0,10).map(x=>'<div class="row"><span>'+x.blueprint.product_name+'</span><span>POST /api/sandbox/'+encodeURIComponent(x.category)+'/run · GET health · $0 execution</span></div>').join(''):'<div class="muted">No sandbox runtimes yet.</div>';
   const e=await fetch('/api/errors?limit=10').then(r=>r.json());
   errors.innerHTML=rows(e,x=>'<div class="row"><span class="danger">'+x.worker+' · '+x.message+'</span><span>'+(x.recovered?'RECOVERED':'OPEN')+'</span></div>','No errors recorded.');
  }catch(err){
