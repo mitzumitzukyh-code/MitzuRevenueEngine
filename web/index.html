@@ -24,6 +24,7 @@ main{max-width:1180px;margin:auto;padding:28px}.top{display:flex;justify-content
 <div class="card panel"><div class="top"><b>ACTIVITY</b><span class="badge">LIVE</span></div><div id="activity"><div class="muted">Waiting for worker activity…</div></div></div>
 <div class="card panel"><div class="top"><b>MARKET OPPORTUNITIES</b><span class="badge">DEMAND</span></div><div id="market"><div class="muted">Waiting for market metrics…</div></div></div>
 <div class="card panel"><div class="top"><b>BUILD CANDIDATES</b><span class="badge">EVIDENCE</span></div><div id="builds"><div class="muted">No BUILD candidates yet.</div></div></div>
+<div class="card panel"><div class="top"><b>PRODUCT PLANS</b><span class="badge">PLANNED</span></div><div id="products"><div class="muted">No product plans yet.</div></div></div>
 <div class="card panel"><div class="top"><b>ERRORS / RECOVERY</b><span class="badge">AUDIT</span></div><div id="errors"><div class="muted">No errors recorded.</div></div></div>
 </main>
 <script>
@@ -39,6 +40,20 @@ async function refresh(){
   market.innerHTML=m.length?m.slice(0,10).map(x=>'<div class="row"><span>'+x.category+' · '+x.decision+'</span><span>OPP '+x.opportunity_score+' / DEM '+x.demand_score+' / COMP '+x.competition_score+'</span></div>').join(''):'<div class="muted">Waiting for market metrics…</div>';
   const b=await fetch('/api/market/build-candidates').then(r=>r.json());
   builds.innerHTML=b.length?b.slice(0,10).map(x=>'<div class="row"><span>'+x.category+' · BUILD</span><span>'+x.reason+'</span></div>').join(''):'<div class="muted">No BUILD candidates yet.</div>';
+  const p=await fetch('/api/products/plans').then(r=>r.json());
+  products.innerHTML=p.length?p.slice(0,10).map(x=>'<div class="row"><span>'+x.product.product_name+'</span><span>
+  errors.innerHTML=e.length?e.map(x=>'<div class="row"><span class="danger">'+x.worker+' · '+x.message+'</span><span>'+(x.recovered?'RECOVERED':'OPEN')+'</span></div>').join(''):'<div class="muted">No errors recorded.</div>';
+ }catch(e){}
+}
+refresh();setInterval(refresh,5000);
+</script></body></html>
++Number(x.product.unit_price_usd).toFixed(4)+'/call · margin '+x.product.gross_margin_pct+'% · projected 
+  errors.innerHTML=e.length?e.map(x=>'<div class="row"><span class="danger">'+x.worker+' · '+x.message+'</span><span>'+(x.recovered?'RECOVERED':'OPEN')+'</span></div>').join(''):'<div class="muted">No errors recorded.</div>';
+ }catch(e){}
+}
+refresh();setInterval(refresh,5000);
+</script></body></html>
++Number(x.product.projected_monthly_profit_usd).toFixed(2)+'/mo</span></div>').join(''):'<div class="muted">No product plans yet.</div>';
   const e=await fetch('/api/errors?limit=10').then(r=>r.json());
   errors.innerHTML=e.length?e.map(x=>'<div class="row"><span class="danger">'+x.worker+' · '+x.message+'</span><span>'+(x.recovered?'RECOVERED':'OPEN')+'</span></div>').join(''):'<div class="muted">No errors recorded.</div>';
  }catch(e){}
