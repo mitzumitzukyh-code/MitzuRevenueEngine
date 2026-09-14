@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.models import MarketMetric, OpportunityRecord
@@ -17,6 +17,8 @@ def rebuild_coinbase_category_metrics(db: Session) -> int:
         grouped[category]["buyers"] += max(row.unique_payers_30d, 0)
         grouped[category]["transactions"] += max(row.calls_30d, 0)
         grouped[category]["volume"] += max(row.estimated_volume_30d_usd, 0)
+
+    db.execute(delete(MarketMetric).where(MarketMetric.source == "coinbase_bazaar"))
 
     for category, values in grouped.items():
         db.add(MarketMetric(
