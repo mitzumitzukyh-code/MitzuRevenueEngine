@@ -11,6 +11,7 @@ from app.config import settings
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
 from app.services.market_intelligence import build_candidate, classify_market, latest_signal, score_category
+from app.services.product_opportunities import design_for_category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -173,5 +174,24 @@ def market_build_candidates(db: Session = Depends(get_db)):
     return sorted(
         candidates,
         key=lambda x: x["scores"]["opportunity"],
+        reverse=True,
+    )
+
+
+@app.get("/api/products/plans")
+def product_plans(db: Session = Depends(get_db)):
+    categories = db.scalars(
+        select(OpportunityRecord.category)
+        .where(OpportunityRecord.category != "")
+        .distinct()
+    ).all()
+    plans = []
+    for category in categories:
+        plan = design_for_category(db, category)
+        if plan:
+            plans.append(plan)
+    return sorted(
+        plans,
+        key=lambda x: x["product"]["projected_monthly_profit_usd"],
         reverse=True,
     )
