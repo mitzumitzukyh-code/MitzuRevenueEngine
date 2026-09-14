@@ -3,12 +3,14 @@ from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db import SessionLocal, init_db
-from app.models import ActivityEvent, LedgerEntry, OpportunityRecord
+from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
+from app.services.market_intelligence import score_category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -94,11 +96,6 @@ def market_networks(db: Session = Depends(get_db)):
         .order_by(func.count(OpportunityRecord.id).desc())
     ).all()
     return [{"network": network, "services": count} for network, count in rows]
-
-
-from pydantic import BaseModel
-from app.models import MarketMetric
-from app.services.market_intelligence import score_category
 
 class MarketMetricIn(BaseModel):
     source: str
