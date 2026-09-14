@@ -12,6 +12,12 @@ class DiscoveredOpportunity:
     automation_score: int = 0
     payment_probability: float = 0
     success_probability: float = 0
+    category: str = ""
+    provider: str = ""
+    network: str = ""
+    asset: str = ""
+    price_atomic: str = ""
+    pay_to: str = ""
 
 class OpportunityAdapter(Protocol):
     name: str
