@@ -18,6 +18,9 @@ class DiscoveredOpportunity:
     asset: str = ""
     price_atomic: str = ""
     pay_to: str = ""
+    calls_30d: int = 0
+    unique_payers_30d: int = 0
+    estimated_volume_30d_usd: float = 0
 
 class OpportunityAdapter(Protocol):
     name: str
