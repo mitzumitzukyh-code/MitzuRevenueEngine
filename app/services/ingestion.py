@@ -28,5 +28,7 @@ def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord,
         decision=decision.value,
         status="discovered",
     )
-    db.add(row); db.commit(); db.refresh(row)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
     return row, True
