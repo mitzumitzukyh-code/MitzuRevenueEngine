@@ -24,7 +24,10 @@ def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord,
         source=item.source, external_id=item.external_id, title=item.title, url=item.url,
         expected_revenue_usd=item.expected_revenue_usd, estimated_cost_usd=item.estimated_cost_usd,
         automation_score=item.automation_score, payment_probability=item.payment_probability,
-        success_probability=item.success_probability, decision=decision.value,
+        success_probability=item.success_probability,
+        category=item.category, provider=item.provider, network=item.network,
+        asset=item.asset, price_atomic=item.price_atomic, pay_to=item.pay_to,
+        decision=decision.value,
         status="discovered",
     )
     db.add(row); db.commit(); db.refresh(row)
