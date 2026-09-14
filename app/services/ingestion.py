@@ -19,6 +19,7 @@ def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord,
         success_probability=item.success_probability,
     )
     decision = decide(op)
+    scored = score(op)
     row = OpportunityRecord(
         source=item.source, external_id=item.external_id, title=item.title, url=item.url,
         expected_revenue_usd=item.expected_revenue_usd, estimated_cost_usd=item.estimated_cost_usd,
@@ -27,5 +28,4 @@ def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord,
         status="discovered",
     )
     db.add(row); db.commit(); db.refresh(row)
-    _ = score(op)
     return row, True
