@@ -73,3 +73,24 @@ def errors(limit: int = 50, db: Session = Depends(get_db)):
                       .order_by(ActivityEvent.created_at.desc()).limit(limit)).all()
     return [{"id": x.id, "worker": x.worker, "message": x.message,
              "recovered": x.recovered, "created_at": x.created_at} for x in rows]
+
+
+@app.get("/api/market/categories")
+def market_categories(db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(OpportunityRecord.category, func.count(OpportunityRecord.id))
+        .where(OpportunityRecord.category != "")
+        .group_by(OpportunityRecord.category)
+        .order_by(func.count(OpportunityRecord.id).desc())
+    ).all()
+    return [{"category": category, "services": count} for category, count in rows]
+
+@app.get("/api/market/networks")
+def market_networks(db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(OpportunityRecord.network, func.count(OpportunityRecord.id))
+        .where(OpportunityRecord.network != "")
+        .group_by(OpportunityRecord.network)
+        .order_by(func.count(OpportunityRecord.id).desc())
+    ).all()
+    return [{"network": network, "services": count} for network, count in rows]
