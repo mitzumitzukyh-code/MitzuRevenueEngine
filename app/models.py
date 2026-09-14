@@ -49,3 +49,14 @@ class LedgerEntry(Base):
     tx_ref: Mapped[str] = mapped_column(String(200), default="")
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class MarketMetric(Base):
+    __tablename__ = "market_metrics"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(String(80), index=True)
+    category: Mapped[str] = mapped_column(String(80), index=True)
+    buyers_30d: Mapped[int] = mapped_column(Integer, default=0)
+    transactions_30d: Mapped[int] = mapped_column(Integer, default=0)
+    volume_30d_usd: Mapped[float] = mapped_column(Float, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
