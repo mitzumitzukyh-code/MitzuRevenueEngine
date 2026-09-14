@@ -25,6 +25,8 @@ def ingest(db: Session, item: DiscoveredOpportunity) -> tuple[OpportunityRecord,
         success_probability=item.success_probability,
         category=item.category, provider=item.provider, network=item.network,
         asset=item.asset, price_atomic=item.price_atomic, pay_to=item.pay_to,
+        calls_30d=item.calls_30d, unique_payers_30d=item.unique_payers_30d,
+        estimated_volume_30d_usd=item.estimated_volume_30d_usd,
         decision=decision.value,
         status="discovered",
     )
