@@ -28,11 +28,19 @@ class CircleDiscoveryAdapter:
             provider = metadata.get("provider") or {}
             description = str(metadata.get("description") or provider.get("description") or "")
             provider_name = str(provider.get("name") or "")
+            category = str(provider.get("category") or "")
+            accepts = item.get("accepts") or []
+            payment = accepts[0] if accepts and isinstance(accepts[0], dict) else {}
+            network = str(payment.get("network") or "")
+            asset = str(payment.get("asset") or "")
+            price_atomic = str(payment.get("amount") or "")
+            pay_to = str(payment.get("payTo") or "")
             title = " · ".join(x for x in (provider_name, description) if x) or url or "x402 service"
             raw_id = url or title
             external_id = "circle:" + hashlib.sha256(raw_id.encode()).hexdigest()[:32]
             found.append(DiscoveredOpportunity(
                 source=self.name, external_id=external_id, title=title, url=url,
-                automation_score=100,
+                automation_score=100, category=category, provider=provider_name,
+                network=network, asset=asset, price_atomic=price_atomic, pay_to=pay_to,
             ))
         return found
