@@ -65,3 +65,43 @@ def build_candidate(db: Session, category: str) -> dict | None:
         "flags": flags,
         "reason": reason,
     }
+
+
+def research_candidate(db: Session, category: str) -> dict | None:
+    signal = latest_signal(db, category)
+    if not signal:
+        return None
+    scored = evaluate(signal)
+    flags = classify_market(signal, scored)
+    if scored.decision != "WATCH":
+        return None
+    if "PROVEN_DEMAND" not in flags or "SATURATED" in flags:
+        return None
+    leaders = db.scalars(
+        select(OpportunityRecord)
+        .where(
+            OpportunityRecord.category == category,
+            OpportunityRecord.source == "coinbase_bazaar",
+        )
+        .order_by(OpportunityRecord.calls_30d.desc())
+        .limit(5)
+    ).all()
+    top_services = [{
+        "provider": row.provider,
+        "title": row.title,
+        "url": row.url,
+        "calls_30d": row.calls_30d,
+        "unique_payers_30d": row.unique_payers_30d,
+        "estimated_volume_30d_usd": row.estimated_volume_30d_usd,
+    } for row in leaders]
+    return {
+        "category": category,
+        "signal": asdict(signal),
+        "scores": asdict(scored),
+        "flags": flags,
+        "top_services": top_services,
+        "reason": (
+            f"Proven demand with {signal.competitors} competitors; "
+            f"opportunity score {scored.opportunity}. Requires unit-economics research."
+        ),
+    }
