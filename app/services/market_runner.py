@@ -30,29 +30,19 @@ class MarketRunner:
                     _, is_new = ingest(db, item)
                     created += int(is_new)
                 summary[adapter.name] = {"seen": len(items), "new": created}
-                record_event(
-                    db,
-                    kind="market_scan",
-                    worker="market",
-                    message=f"{adapter.name} scan complete: {len(items)} seen, {created} new",
-                )
+                message = f"{adapter.name} scan complete: {len(items)} seen, {created} new"
+                record_event(db, kind="market_scan", worker="market", message=message)
+                print(message, flush=True)
 
             categories = rebuild_coinbase_category_metrics(db)
-            record_event(
-                db,
-                kind="demand_refresh",
-                worker="market",
-                message=f"Coinbase demand metrics refreshed for {categories} categories",
-            )
+            message = f"Coinbase demand metrics refreshed for {categories} categories"
+            record_event(db, kind="demand_refresh", worker="market", message=message)
+            print(message, flush=True)
             return summary
         except Exception as exc:
-            record_event(
-                db,
-                kind="error",
-                worker="market",
-                message=f"{type(exc).__name__}: {exc}",
-                is_error=True,
-            )
+            message = f"{type(exc).__name__}: {exc}"
+            record_event(db, kind="error", worker="market", message=message, is_error=True)
+            print(f"Market error: {message}", flush=True)
             raise
         finally:
             db.close()
