@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
-from app.services.market_intelligence import score_category
+from app.services.market_intelligence import build_candidate, classify_market, latest_signal, score_category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -135,6 +135,7 @@ def market_opportunities(db: Session = Depends(get_db)):
                 "competition_score": scored.competition,
                 "opportunity_score": scored.opportunity,
                 "decision": scored.decision,
+                "flags": classify_market(latest_signal(db, category), scored),
             })
     return sorted(result, key=lambda x: x["opportunity_score"], reverse=True)
 
@@ -155,3 +156,22 @@ def worker_status(db: Session = Depends(get_db)):
             "last_was_error": last.is_error if last else False,
         })
     return result
+
+
+@app.get("/api/market/build-candidates")
+def market_build_candidates(db: Session = Depends(get_db)):
+    categories = db.scalars(
+        select(OpportunityRecord.category)
+        .where(OpportunityRecord.category != "")
+        .distinct()
+    ).all()
+    candidates = []
+    for category in categories:
+        candidate = build_candidate(db, category)
+        if candidate:
+            candidates.append(candidate)
+    return sorted(
+        candidates,
+        key=lambda x: x["scores"]["opportunity"],
+        reverse=True,
+    )
