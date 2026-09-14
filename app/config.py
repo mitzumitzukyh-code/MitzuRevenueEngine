@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     scout_interval_seconds: int = 900
     circle_discovery_url: str = "https://api.circle.com/v2/x402/discovery/resources"
     open402_directory_url: str = "https://agentinternetruntime.com/api/directory?protocol=x402&limit=100"
+    coinbase_bazaar_url: str = "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources"
+    coinbase_page_size: int = 100
+    coinbase_max_pages: int = 200
     market_scan_interval_seconds: int = 3600
     binance_deposit_address: str = ""
     binance_deposit_network: str = ""
