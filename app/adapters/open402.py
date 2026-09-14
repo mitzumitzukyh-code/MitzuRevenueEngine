@@ -7,6 +7,32 @@ import hashlib
 import httpx
 from app.adapters.base import DiscoveredOpportunity
 
+
+def _directory_items(payload) -> list[dict]:
+    """Normalize known directory response envelopes without weakening validation."""
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    if not isinstance(payload, dict):
+        return []
+
+    candidates = [
+        payload.get("items"),
+        payload.get("domains"),
+        payload.get("results"),
+        payload.get("entries"),
+        payload.get("services"),
+        payload.get("data"),
+    ]
+    for candidate in candidates:
+        if isinstance(candidate, list):
+            return [item for item in candidate if isinstance(item, dict)]
+        if isinstance(candidate, dict):
+            nested = _directory_items(candidate)
+            if nested:
+                return nested
+    return []
+
+
 class Open402DirectoryAdapter:
     name = "open402"
 
@@ -18,20 +44,24 @@ class Open402DirectoryAdapter:
             response = await client.get(self.directory_url)
             response.raise_for_status()
             payload = response.json()
-        items = payload if isinstance(payload, list) else (
-            payload.get("items") or payload.get("domains") or payload.get("results") or []
-        )
+
+        items = _directory_items(payload)
         found = []
         for item in items:
-            if not isinstance(item, dict):
-                continue
-            domain = str(item.get("domain") or item.get("origin") or "")
+            domain = str(
+                item.get("domain")
+                or item.get("origin")
+                or item.get("hostname")
+                or item.get("host")
+                or ""
+            ).strip()
             if not domain:
                 continue
-            title = str(item.get("display_name") or item.get("name") or domain)
+            domain = domain.removeprefix("https://").removeprefix("http://").rstrip("/")
+            title = str(item.get("display_name") or item.get("displayName") or item.get("name") or domain)
             description = str(item.get("description") or "")
             category = str(item.get("category") or "")
-            payout = str(item.get("payout_address") or "")
+            payout = str(item.get("payout_address") or item.get("payoutAddress") or "")
             external_id = "open402:" + hashlib.sha256(domain.encode()).hexdigest()[:32]
             found.append(DiscoveredOpportunity(
                 source=self.name,
@@ -39,8 +69,8 @@ class Open402DirectoryAdapter:
                 title=(title + (" · " + description if description else ""))[:500],
                 url="https://" + domain,
                 automation_score=100,
-                category=category,
-                provider=title,
-                pay_to=payout,
+                category=category[:80],
+                provider=title[:200],
+                pay_to=payout[:200],
             ))
         return found
