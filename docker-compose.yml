@@ -21,6 +21,17 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+  market:
+    build: .
+    command: ["python", "-m", "app.market_main"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://mitzu:mitzu@db:5432/mitzu
+      MARKET_SCAN_INTERVAL_SECONDS: "3600"
+      AUTONOMOUS_EXECUTION: "false"
+      WALLET_ENABLED: "false"
+    depends_on:
+      - db
+    restart: unless-stopped
   db:
     image: postgres:16-alpine
     environment:
