@@ -13,6 +13,7 @@ from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityReco
 from app.services.market_intelligence import build_candidate, classify_market, latest_signal, score_category
 from app.services.product_opportunities import design_for_category
 from app.services.service_factory import blueprint_for_category
+from app.services.sandbox_runtime import health_category, run_category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -211,3 +212,23 @@ def service_blueprints(db: Session = Depends(get_db)):
         if blueprint:
             blueprints.append(blueprint)
     return blueprints
+
+
+class SandboxRequest(BaseModel):
+    payload: dict = {}
+
+
+@app.get("/api/sandbox/{category}/health")
+def sandbox_health(category: str, db: Session = Depends(get_db)):
+    result = health_category(db, category)
+    return result or {"status": "unavailable", "reason": "category is not a BUILD candidate"}
+
+
+@app.post("/api/sandbox/{category}/run")
+def sandbox_run(category: str, request: SandboxRequest, db: Session = Depends(get_db)):
+    result = run_category(db, category, request.payload)
+    return result or {
+        "status": "blocked",
+        "reason": "category is not a BUILD candidate",
+        "payment_attempted": False,
+    }
