@@ -12,6 +12,7 @@ from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
 from app.services.market_intelligence import build_candidate, classify_market, latest_signal, score_category
 from app.services.product_opportunities import design_for_category
+from app.services.service_factory import blueprint_for_category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -195,3 +196,18 @@ def product_plans(db: Session = Depends(get_db)):
         key=lambda x: x["product"]["projected_monthly_profit_usd"],
         reverse=True,
     )
+
+
+@app.get("/api/factory/blueprints")
+def service_blueprints(db: Session = Depends(get_db)):
+    categories = db.scalars(
+        select(OpportunityRecord.category)
+        .where(OpportunityRecord.category != "")
+        .distinct()
+    ).all()
+    blueprints = []
+    for category in categories:
+        blueprint = blueprint_for_category(db, category)
+        if blueprint:
+            blueprints.append(blueprint)
+    return blueprints
