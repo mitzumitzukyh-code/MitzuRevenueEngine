@@ -22,6 +22,7 @@ main{max-width:1180px;margin:auto;padding:28px}.top{display:flex;justify-content
 <div class="card"><div class="muted">OPPORTUNITIES</div><div id="ops" class="big">0</div></div>
 </div>
 <div class="card panel"><div class="top"><b>ACTIVITY</b><span class="badge">LIVE</span></div><div id="activity"><div class="muted">Waiting for worker activity…</div></div></div>
+<div class="card panel"><div class="top"><b>MARKET OPPORTUNITIES</b><span class="badge">DEMAND</span></div><div id="market"><div class="muted">Waiting for market metrics…</div></div></div>
 <div class="card panel"><div class="top"><b>ERRORS / RECOVERY</b><span class="badge">AUDIT</span></div><div id="errors"><div class="muted">No errors recorded.</div></div></div>
 </main>
 <script>
@@ -33,6 +34,8 @@ async function refresh(){
   cost.textContent=money(s.cost_today_usd); ops.textContent=s.opportunities_seen;
   const a=await fetch('/api/activity?limit=15').then(r=>r.json());
   activity.innerHTML=a.length?a.map(x=>'<div class="row"><span>'+x.worker+' · '+x.message+'</span><span class="muted">'+new Date(x.created_at).toLocaleTimeString()+'</span></div>').join(''):'<div class="muted">Waiting for worker activity…</div>';
+  const m=await fetch('/api/market/opportunities').then(r=>r.json());
+  market.innerHTML=m.length?m.slice(0,10).map(x=>'<div class="row"><span>'+x.category+' · '+x.decision+'</span><span>OPP '+x.opportunity_score+' / DEM '+x.demand_score+' / COMP '+x.competition_score+'</span></div>').join(''):'<div class="muted">Waiting for market metrics…</div>';
   const e=await fetch('/api/errors?limit=10').then(r=>r.json());
   errors.innerHTML=e.length?e.map(x=>'<div class="row"><span class="danger">'+x.worker+' · '+x.message+'</span><span>'+(x.recovered?'RECOVERED':'OPEN')+'</span></div>').join(''):'<div class="muted">No errors recorded.</div>';
  }catch(e){}
