@@ -15,6 +15,7 @@ from app.services.product_opportunities import design_for_category
 from app.services.service_factory import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
 from app.services.evaluation_lab import evaluate_category
+from app.services.deployment_planner import staging_plan
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -243,4 +244,14 @@ def evaluate_service(category: str, requests: int = 100, db: Session = Depends(g
         "verdict": "BLOCKED",
         "reason": "category is not a BUILD candidate",
         "production_deploy": False,
+    }
+
+
+@app.get("/api/deployment/staging/{category}")
+def deployment_staging_plan(category: str, requests: int = 100, db: Session = Depends(get_db)):
+    result = staging_plan(db, category, max(1, min(requests, 1000)))
+    return result or {
+        "staging_eligible": False,
+        "deployment_blocked": True,
+        "block_reason": "NO_VALID_BUILD_CANDIDATE",
     }
