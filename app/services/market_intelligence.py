@@ -105,3 +105,37 @@ def research_candidate(db: Session, category: str) -> dict | None:
             f"opportunity score {scored.opportunity}. Requires unit-economics research."
         ),
     }
+
+
+def research_priority(candidate: dict) -> dict:
+    signal = candidate["signal"]
+    services = candidate["top_services"]
+    total_calls = max(int(signal["transactions_30d"]), 1)
+    total_volume = float(signal["volume_30d_usd"])
+    leader_calls = int(services[0]["calls_30d"]) if services else 0
+    avg_revenue_per_call = total_volume / total_calls
+    leader_share = leader_calls / total_calls
+    concentration_penalty = round(leader_share * 25)
+    monetization_score = min(100, round(avg_revenue_per_call * 10000))
+    priority_score = max(
+        0,
+        min(
+            100,
+            round(
+                candidate["scores"]["opportunity"] * 0.65
+                + monetization_score * 0.35
+                - concentration_penalty
+            ),
+        ),
+    )
+    return {
+        **candidate,
+        "research_metrics": {
+            "avg_revenue_per_call_usd": round(avg_revenue_per_call, 6),
+            "leader_call_share": round(leader_share, 4),
+            "concentration_penalty": concentration_penalty,
+            "monetization_score": monetization_score,
+            "research_priority_score": priority_score,
+        },
+        "next_action": "UNIT_ECONOMICS_RESEARCH",
+    }
