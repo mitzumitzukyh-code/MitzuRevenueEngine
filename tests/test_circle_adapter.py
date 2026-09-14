@@ -1,4 +1,3 @@
-import pytest
 from app.adapters.circle import CircleDiscoveryAdapter
 
 def test_adapter_name():
