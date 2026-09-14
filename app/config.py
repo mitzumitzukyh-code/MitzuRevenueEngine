@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     min_automation_score: int = 90
     autonomous_execution: bool = False
     wallet_enabled: bool = False
+    scout_enabled: bool = True
+    scout_interval_seconds: int = 900
+    circle_discovery_url: str = "https://api.circle.com/v2/x402/discovery/resources"
     binance_deposit_address: str = ""
     binance_deposit_network: str = ""
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
