@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
+from app.services.liquidations_probe import probe_liquidation_sources
 from app.services.market_intelligence import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
 from app.services.product_opportunities import design_for_category
 from app.services.service_factory import blueprint_for_category
@@ -274,3 +275,14 @@ def market_research_candidates(db: Session = Depends(get_db)):
         key=lambda x: x["research_metrics"]["research_priority_score"],
         reverse=True,
     )
+
+
+@app.get("/api/research/liquidations/source-probe")
+async def liquidations_source_probe():
+    return {
+        "mode": "READ_ONLY",
+        "trading": False,
+        "authentication": False,
+        "payments": False,
+        "results": await probe_liquidation_sources(),
+    }
