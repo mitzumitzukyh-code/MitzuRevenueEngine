@@ -140,3 +140,21 @@ def market_opportunities(db: Session = Depends(get_db)):
                 "decision": scored.decision,
             })
     return sorted(result, key=lambda x: x["opportunity_score"], reverse=True)
+
+
+@app.get("/api/system/workers")
+def worker_status(db: Session = Depends(get_db)):
+    workers = ["scout", "market", "recovery"]
+    result = []
+    for worker in workers:
+        last = db.scalars(
+            select(ActivityEvent).where(ActivityEvent.worker == worker)
+            .order_by(ActivityEvent.created_at.desc()).limit(1)
+        ).first()
+        result.append({
+            "worker": worker,
+            "last_seen": last.created_at if last else None,
+            "last_message": last.message if last else "No activity yet",
+            "last_was_error": last.is_error if last else False,
+        })
+    return result
