@@ -14,6 +14,7 @@ from app.services.market_intelligence import build_candidate, classify_market, l
 from app.services.product_opportunities import design_for_category
 from app.services.service_factory import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
+from app.services.evaluation_lab import evaluate_category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -231,4 +232,15 @@ def sandbox_run(category: str, request: SandboxRequest, db: Session = Depends(ge
         "status": "blocked",
         "reason": "category is not a BUILD candidate",
         "payment_attempted": False,
+    }
+
+
+@app.post("/api/evaluation/{category}")
+def evaluate_service(category: str, requests: int = 100, db: Session = Depends(get_db)):
+    requests = max(1, min(requests, 1000))
+    result = evaluate_category(db, category, requests)
+    return result or {
+        "verdict": "BLOCKED",
+        "reason": "category is not a BUILD candidate",
+        "production_deploy": False,
     }
