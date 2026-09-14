@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
-from app.services.market_intelligence import build_candidate, classify_market, latest_signal, research_candidate, score_category
+from app.services.market_intelligence import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
 from app.services.product_opportunities import design_for_category
 from app.services.service_factory import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
@@ -268,9 +268,9 @@ def market_research_candidates(db: Session = Depends(get_db)):
     for category in categories:
         candidate = research_candidate(db, category)
         if candidate:
-            candidates.append(candidate)
+            candidates.append(research_priority(candidate))
     return sorted(
         candidates,
-        key=lambda x: x["scores"]["opportunity"],
+        key=lambda x: x["research_metrics"]["research_priority_score"],
         reverse=True,
     )
