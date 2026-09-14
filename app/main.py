@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -15,6 +16,10 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Mitzu Revenue Engine", version="0.1.0", lifespan=lifespan)
+
+@app.get("/", include_in_schema=False)
+def dashboard():
+    return FileResponse("web/index.html")
 
 def get_db():
     db = SessionLocal()
