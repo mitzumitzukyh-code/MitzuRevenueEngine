@@ -24,6 +24,37 @@ The collector MUST NOT ingest a venue into a paid x402 response merely because i
 - Binance Developer REST API docs: https://developers.binance.com/en/docs/products/spot/rest-api (public market-data endpoint documented; no affirmative redistribution right established by this review).
 - Kraken API overview: https://www.kraken.com/features/trading-api (technical availability only; not a redistribution grant).
 
+## Alternative-source review after human approval
+
+### CoinGecko — potentially viable for a transformed analytics product, not raw resale
+
+CoinGecko's current API materials distinguish commercial integration from redistribution. Its standard Commercial License says a product may charge users for its own services/products that incorporate or integrate CoinGecko API data, with prominent attribution, while raw API/data redistribution remains prohibited. CoinGecko's Data Redistribution / Data Reseller licenses are separate custom/Enterprise rights.
+
+Official sources:
+- https://www.coingecko.com/en/api
+- https://www.coingecko.com/en/api/enterprise/data-license
+- https://support.coingecko.com/hc/en-us/articles/16760512207257-What-Are-the-Differences-Between-Commercial-and-Custom-Licenses
+
+Decision: CANDIDATE_WITH_CONSTRAINTS. Do not proxy, resell, sublicense or expose raw CoinGecko API access. Before implementation, the paid endpoint must be defined as Mitzu-authored analytics that incorporates source data, preserve required attribution, and confirm that every required endpoint/data field is covered by the selected plan. Because MITZU-001 starts from $0, no paid CoinGecko plan may be purchased autonomously.
+
+### DefiLlama — exclude
+
+Current terms grant personal/non-commercial use and prohibit commercial exploitation, resale and republication without prior written consent. Decision: EXCLUDE absent written permission.
+
+Official source: https://defillama.com/terms
+
+### CoinCap — insufficient rights established
+
+Current terms describe an API for use/display in external locations, but this review did not find an affirmative grant to resell or redistribute its data through a paid API. Decision: EXCLUDE_PENDING_CLEAR_LICENSE.
+
+Official source: https://coincap.io/terms-of-service
+
+## Product pivot candidate
+
+Instead of selling raw exchange observations, Phase 4 should test a derived **market-risk snapshot** whose value is Mitzu's computation: normalized cross-asset volatility/regime metrics, market breadth, relative-volume/price dislocation and timestamped methodology. Source values are inputs; the response must not reproduce or proxy a source API. Every response must carry source attribution, observation window, freshness and `financial_advice: false`.
+
+This pivot is conditional on a no-capital source/API tier whose current license permits the exact commercial integration. If the required data or commercial rights require a paid subscription, implementation remains blocked by the $0/no-spend constraint.
+
 ## Consequence for product design
 
 The proposed multi-exchange liquidation/funding/OI product cannot honestly be wired to payment yet. The blocker is licensing, not implementation capability. Building the collector against excluded sources now would create code whose intended paid use conflicts with, or is not affirmatively supported by, the reviewed terms.
@@ -60,4 +91,4 @@ The following is a schema example only. Numeric observations are intentionally n
 
 ## STOP gate result
 
-BLOCKED_PENDING_LICENSE. Do not implement or connect the paid collector until the source-rights blocker is resolved and explicitly approved at the Phase 4 human gate.
+HUMAN_GATE_APPROVED_FOR_ALTERNATIVE_SOURCE_RESEARCH. Raw exchange redistribution remains blocked. CoinGecko is a constrained candidate for a transformed analytics product, but implementation is still gated on verifying that a zero-cost permitted tier covers the exact fields and commercial use. No subscription purchase is authorized.
