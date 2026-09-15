@@ -17,6 +17,7 @@ from app.x402_dry_run import dry_run_payment_required
 from app.x402_accepts_preview import build_accepts_preview
 from app.commercial_readiness import assess_commercial_readiness
 from app.db import SessionLocal, init_db
+from app.demand import evaluate
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
 from app.services.liquidations_probe import probe_liquidation_sources
 from app.services.liquidations_prototype import liquidation_snapshot
