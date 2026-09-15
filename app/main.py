@@ -367,10 +367,10 @@ async def validate_liquidations_product(asset: str, runs: int = 5, _: None = Dep
 def liquidations_commercial_readiness():
     return assess_commercial_readiness(
         product="liquidations",
-        technical_validation="PASS",
-        methodology_truthful=True,
-        observed_market_demand=True,
-        source_cost_verified=True,
+        technical_validation="UNKNOWN",
+        methodology_truthful=False,
+        observed_market_demand=False,
+        source_cost_verified=False,
         fixed_costs_accounted=False,
         pricing_validated=False,
         payment_path_validated=False,
