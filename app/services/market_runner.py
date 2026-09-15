@@ -24,15 +24,21 @@ class MarketRunner:
         summary = {}
         try:
             for adapter in self.adapters:
-                items = await adapter.discover()
-                created = 0
-                for item in items:
-                    _, is_new = ingest(db, item)
-                    created += int(is_new)
-                summary[adapter.name] = {"seen": len(items), "new": created}
-                message = f"{adapter.name} scan complete: {len(items)} seen, {created} new"
-                record_event(db, kind="market_scan", worker="market", message=message)
-                print(message, flush=True)
+                try:
+                    items = await adapter.discover()
+                    created = 0
+                    for item in items:
+                        _, is_new = ingest(db, item)
+                        created += int(is_new)
+                    summary[adapter.name] = {"seen": len(items), "new": created}
+                    message = f"{adapter.name} scan complete: {len(items)} seen, {created} new"
+                    record_event(db, kind="market_scan", worker="market", message=message)
+                    print(message, flush=True)
+                except Exception as exc:
+                    db.rollback()
+                    summary[adapter.name] = {"error": type(exc).__name__}
+                    record_event(db, kind="adapter_error", worker="market", message=f"adapter={adapter.name} error={type(exc).__name__}", is_error=True)
+                    continue
 
             categories = rebuild_coinbase_category_metrics(db)
             message = f"Coinbase demand metrics refreshed for {categories} categories"
