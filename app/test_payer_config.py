@@ -7,9 +7,11 @@ import os
 
 from app.payment_readiness import EVM_ADDRESS
 
+DEFAULT_TEST_PAYER_ADDRESS = "0x15Dac2652358377Cc5e855a0f1F86B3C44A45E6f"
+
 
 def test_payer_status() -> dict:
-    address = os.getenv("X402_TEST_PAYER_ADDRESS", "").strip()
+    address = os.getenv("X402_TEST_PAYER_ADDRESS", DEFAULT_TEST_PAYER_ADDRESS).strip()
     key_present = bool(os.getenv("X402_TEST_PAYER_PRIVATE_KEY", "").strip())
     valid = bool(address and EVM_ADDRESS.fullmatch(address))
     return {
