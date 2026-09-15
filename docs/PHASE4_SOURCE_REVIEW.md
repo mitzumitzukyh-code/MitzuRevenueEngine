@@ -35,7 +35,7 @@ Official sources:
 - https://www.coingecko.com/en/api/enterprise/data-license
 - https://support.coingecko.com/hc/en-us/articles/16760512207257-What-Are-the-Differences-Between-Commercial-and-Custom-Licenses
 
-Decision: CANDIDATE_WITH_CONSTRAINTS. Do not proxy, resell, sublicense or expose raw CoinGecko API access. Before implementation, the paid endpoint must be defined as Mitzu-authored analytics that incorporates source data, preserve required attribution, and confirm that every required endpoint/data field is covered by the selected plan. Because MITZU-001 starts from $0, no paid CoinGecko plan may be purchased autonomously.
+Decision: BLOCKED_FOR_$0_PRODUCTION. Do not proxy, resell, sublicense or expose raw CoinGecko API access. CoinGecko's current pricing matrix explicitly assigns a Commercial license to paid plans, while the $0 Demo tier is described as testing/exploration and does not show a Commercial license. The keyless public API is explicitly described as optimized for low-volume testing and non-commercial educational use. Therefore neither zero-cost path is accepted for a paid Mitzu endpoint. A paid plan or separate written permission would violate the current no-spend constraint unless the human owner later authorizes it.
 
 ### DefiLlama — exclude
 
@@ -53,7 +53,7 @@ Official source: https://coincap.io/terms-of-service
 
 Instead of selling raw exchange observations, Phase 4 should test a derived **market-risk snapshot** whose value is Mitzu's computation: normalized cross-asset volatility/regime metrics, market breadth, relative-volume/price dislocation and timestamped methodology. Source values are inputs; the response must not reproduce or proxy a source API. Every response must carry source attribution, observation window, freshness and `financial_advice: false`.
 
-This pivot is conditional on a no-capital source/API tier whose current license permits the exact commercial integration. If the required data or commercial rights require a paid subscription, implementation remains blocked by the $0/no-spend constraint.
+This pivot remains conceptually valid, but the reviewed CoinGecko zero-cost tiers do not satisfy the commercial-use gate. Current official pricing shows Demo at $0 with 10k calls/month and attribution, but Commercial licensing starts on paid plans; the keyless API is non-commercial. Therefore no CoinGecko collector will be implemented for the paid service under the current $0 constraint.
 
 ## Consequence for product design
 
@@ -92,3 +92,10 @@ The following is a schema example only. Numeric observations are intentionally n
 ## STOP gate result
 
 HUMAN_GATE_APPROVED_FOR_ALTERNATIVE_SOURCE_RESEARCH. Raw exchange redistribution remains blocked. CoinGecko is a constrained candidate for a transformed analytics product, but implementation is still gated on verifying that a zero-cost permitted tier covers the exact fields and commercial use. No subscription purchase is authorized.
+
+
+## Zero-capital conclusion
+
+As of this review, no reviewed market-data provider supplies both (a) the needed market inputs and (b) sufficiently explicit rights for a zero-cost paid API product. Phase 4 implementation is therefore intentionally blocked rather than silently converting a testing/free tier into commercial production use.
+
+Next compliant revenue path: keep the market-data product blueprint dormant and redirect MITZU-001 toward externally funded software bounties/jobs that require no capital. Revenue from such work could later fund a properly licensed commercial data plan, subject to human approval before any spend.
