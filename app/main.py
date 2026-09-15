@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 import logging
 
@@ -65,6 +65,27 @@ def health():
         "autonomous_execution": settings.autonomous_execution,
         "wallet_enabled": settings.wallet_enabled,
     }
+
+@app.get("/ready")
+def ready(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(status_code=503, detail="database unavailable") from None
+    workers = ["scout", "market"]
+    now = datetime.now(timezone.utc)
+    stale = []
+    for worker in workers:
+        last = db.scalars(select(ActivityEvent).where(ActivityEvent.worker == worker).order_by(ActivityEvent.created_at.desc()).limit(1)).first()
+        if last is None:
+            stale.append(worker)
+            continue
+        seen = last.created_at if last.created_at.tzinfo else last.created_at.replace(tzinfo=timezone.utc)
+        if (now - seen).total_seconds() > settings.worker_stale_after_seconds:
+            stale.append(worker)
+    if stale:
+        raise HTTPException(status_code=503, detail="workers not ready")
+    return {"status": "ready"}
 
 @app.get("/api/dashboard/summary")
 def dashboard_summary(db: Session = Depends(get_db)):
