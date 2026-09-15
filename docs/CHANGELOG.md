@@ -21,3 +21,9 @@ No mainnet settlement, outgoing spending, or wallet signing was enabled.
 - Added bounded worker failure handling with exponential backoff.
 - Added readiness checks for database connectivity and worker freshness.
 - Documented daily backups and restoration drills.
+
+### Phase 3 — data honesty
+- Removed invented 20% unit-cost and 100-call demand assumptions from product planning.
+- Commercial readiness now defaults unmeasured evidence to UNKNOWN and remains NOT_SELLABLE.
+- Competition counts unique source/provider pairs instead of raw records.
+- Renamed the bounty model to BountyOpportunity to distinguish it from the domain Opportunity model.

@@ -1,5 +1,5 @@
 from app.demand import MarketSignal, evaluate
-from app.services.market_intelligence import classify_market
+from app.services.market_intelligence_service import classify_market
 
 def test_dead_market_flag():
     signal = MarketSignal(0, 0, 0, 1)

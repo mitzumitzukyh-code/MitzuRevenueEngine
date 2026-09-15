@@ -3,7 +3,7 @@ from dataclasses import asdict
 from sqlalchemy.orm import Session
 
 from app.product_designer import design
-from app.services.market_intelligence import build_candidate, latest_signal
+from app.services.market_intelligence_service import build_candidate, latest_signal
 
 
 def design_for_category(db: Session, category: str) -> dict | None:

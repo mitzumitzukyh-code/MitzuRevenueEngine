@@ -1,6 +1,6 @@
 """Normalize GitHub bounty issues into Opportunity Scout candidates."""
 import re
-from app.opportunity_scout import Opportunity
+from app.opportunity_scout import BountyOpportunity
 
 BOUNTY_RE = re.compile(r"/bounty\s+\$([0-9]+(?:\.[0-9]+)?)", re.I)
 
@@ -20,11 +20,11 @@ def from_github_issue(
     success_probability: float,
     estimated_ai_cost_usd: float = 0,
     risk_penalty_usd: float = 0,
-) -> Opportunity | None:
+) -> BountyOpportunity | None:
     amount = bounty_amount(body)
     if amount is None:
         return None
-    return Opportunity(
+    return BountyOpportunity(
         source=f"github:{repo}#{number}",
         title=title,
         payout_usd=amount,

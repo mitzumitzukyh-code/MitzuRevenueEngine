@@ -13,6 +13,8 @@ def test_blueprint_is_sandboxed_and_unpaid():
         projected_monthly_revenue_usd=10,
         projected_monthly_cost_usd=2,
         projected_monthly_profit_usd=8,
+        cost_basis="TEST_FIXTURE",
+        projection_status="TEST_FIXTURE",
         rationale="test",
     )
     blueprint = build_blueprint(plan)
@@ -33,6 +35,8 @@ def test_blueprint_generates_stable_route():
         projected_monthly_revenue_usd=1,
         projected_monthly_cost_usd=0.2,
         projected_monthly_profit_usd=0.8,
+        cost_basis="TEST_FIXTURE",
+        projection_status="TEST_FIXTURE",
         rationale="test",
     )
     blueprint = build_blueprint(plan)

@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.db import Base
 from app.models import MarketMetric, OpportunityRecord
-from app.services.market_intelligence import research_candidate
+from app.services.market_intelligence_service import research_candidate
 
 
 def test_research_candidate_requires_proven_non_saturated_watch_market():

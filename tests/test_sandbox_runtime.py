@@ -14,6 +14,8 @@ def _blueprint():
         projected_monthly_revenue_usd=1,
         projected_monthly_cost_usd=0.2,
         projected_monthly_profit_usd=0.8,
+        cost_basis="TEST_FIXTURE",
+        projection_status="TEST_FIXTURE",
         rationale="test",
     ))
 

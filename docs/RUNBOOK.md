@@ -33,3 +33,8 @@ PostgreSQL backups must run daily using `pg_dump --format=custom` to encrypted d
 Telegram is opt-in. Set TELEGRAM_ENABLED=true plus TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID only in the deployment secret store. Test delivery after deployment without printing the token. Alert delivery failure must never enable spending or alter ledger state.
 
 Operational alert conditions for the production deployment are: required worker stale beyond WORKER_STALE_AFTER_SECONDS; repeated worker failures reaching the configured limit; elevated API/adapter error rate; verified payment whose settlement later fails; kill switch activation; and the daily revenue/cost summary. Payment-specific alerts are wired when settlement exists in Phase 5; this phase only provides the notification transport.
+
+
+## Data honesty gate
+
+Commercial-readiness fields must be derived from persisted measurements or remain UNKNOWN. UNKNOWN is fail-closed and blocks SELLABLE status. Product costs, margins, call targets and profit projections must not be inferred from arbitrary ratios. Cost-based decisions remain disabled until measured infrastructure, facilitator, gas-if-applicable and paid-source costs are recorded.

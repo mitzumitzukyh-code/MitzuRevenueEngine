@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.evaluation_lab import report_dict
 from app.product_designer import ProductPlan
 from app.service_factory import build_blueprint
-from app.services.product_opportunities import design_for_category
+from app.services.product_opportunities_service import design_for_category
 
 
 def evaluate_category(db: Session, category: str, requests: int = 100) -> dict | None:

@@ -1,4 +1,4 @@
-from app.services.market_intelligence import research_priority
+from app.services.market_intelligence_service import research_priority
 
 def _candidate(category, volume, calls, leader_calls, opportunity=63):
     return {

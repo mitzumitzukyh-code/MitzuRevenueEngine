@@ -21,12 +21,12 @@ from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityReco
 from app.services.liquidations_probe import probe_liquidation_sources
 from app.services.liquidations_prototype import liquidation_snapshot
 from app.services.prototype_validation import validate_liquidations
-from app.services.market_intelligence import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
-from app.services.product_opportunities import design_for_category
-from app.services.service_factory import blueprint_for_category
+from app.services.market_intelligence_service import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
+from app.services.product_opportunities_service import design_for_category
+from app.services.service_factory_service import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
-from app.services.evaluation_lab import evaluate_category
-from app.services.deployment_planner import staging_plan
+from app.services.evaluation_service import evaluate_category
+from app.services.deployment_planner_service import staging_plan
 import httpx
 
 @asynccontextmanager
@@ -367,10 +367,10 @@ async def validate_liquidations_product(asset: str, runs: int = 5, _: None = Dep
 def liquidations_commercial_readiness():
     return assess_commercial_readiness(
         product="liquidations",
-        technical_validation="PASS",
-        methodology_truthful=True,
-        observed_market_demand=True,
-        source_cost_verified=True,
+        technical_validation="UNKNOWN",
+        methodology_truthful=None,
+        observed_market_demand=None,
+        source_cost_verified=None,
         fixed_costs_accounted=False,
         pricing_validated=False,
         payment_path_validated=False,
