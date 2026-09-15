@@ -8,7 +8,7 @@ from app.models import MarketMetric, OpportunityRecord
 
 def category_competitors(db: Session, category: str) -> int:
     return db.scalar(
-        select(func.count()).select_from(OpportunityRecord)
+        select(func.count(func.distinct(OpportunityRecord.source + ":" + OpportunityRecord.provider))).select_from(OpportunityRecord)
         .where(OpportunityRecord.category == category)
     ) or 0
 
@@ -56,7 +56,7 @@ def build_candidate(db: Session, category: str) -> dict | None:
     reason = (
         f"{signal.buyers_30d} buyers, {signal.transactions_30d} calls, "
         f"${signal.volume_30d_usd:.2f} estimated 30d volume, "
-        f"{signal.competitors} listed competitors"
+        f"{signal.competitors} unique source/provider competitors"
     )
     return {
         "category": category,
