@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.x402_dry_run import dry_run_payment_required
+from app.x402_accepts_preview import build_accepts_preview
 from app.commercial_readiness import assess_commercial_readiness
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
@@ -342,5 +343,39 @@ async def paid_liquidations_dry_run(asset: str, request: Request):
         headers={
             "PAYMENT-REQUIRED": encoded,
             "X-MITZU-X402-MODE": "DRY_RUN_NO_SETTLEMENT",
+        },
+    )
+
+
+@app.get("/api/testnet/paid/liquidations/{asset}")
+async def testnet_paid_liquidations(asset: str, request: Request):
+    normalized = asset.upper().strip()
+    allowed = {"BTC", "ETH", "SOL"}
+    if normalized not in allowed:
+        raise HTTPException(status_code=404, detail="asset not enabled")
+    public_base_url = str(request.base_url).replace("http://", "https://", 1)
+    requirement, _ = dry_run_payment_required(public_base_url, normalized)
+    preview = build_accepts_preview()
+    requirement["resource"]["url"] = (
+        f"{public_base_url.rstrip('/')}/api/testnet/paid/liquidations/{normalized}"
+    )
+    requirement["accepts"] = preview["accepts"]
+    requirement["extensions"]["mitzuDryRun"].update({
+        "walletConfigured": True,
+        "settlementEnabled": False,
+        "testnetOnly": True,
+        "realFunds": False,
+    })
+    import base64
+    import json
+    encoded = base64.b64encode(
+        json.dumps(requirement, separators=(",", ":")).encode()
+    ).decode()
+    return JSONResponse(
+        status_code=402,
+        content=requirement,
+        headers={
+            "PAYMENT-REQUIRED": encoded,
+            "X-MITZU-X402-MODE": "TESTNET_ADVERTISE_NO_SETTLEMENT",
         },
     )
