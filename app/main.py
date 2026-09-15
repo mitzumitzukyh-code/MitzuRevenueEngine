@@ -12,6 +12,7 @@ from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
 from app.services.liquidations_probe import probe_liquidation_sources
 from app.services.liquidations_prototype import liquidation_snapshot
+from app.services.prototype_validation import validate_liquidations
 from app.services.market_intelligence import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
 from app.services.product_opportunities import design_for_category
 from app.services.service_factory import blueprint_for_category
@@ -300,3 +301,12 @@ async def liquidations_prototype(asset: str):
             "allowed_assets": sorted(allowed),
         }
     return await liquidation_snapshot(f"{normalized}-USDT-SWAP")
+
+
+@app.get("/api/validation/liquidations/{asset}")
+async def validate_liquidations_product(asset: str, runs: int = 5):
+    normalized = asset.upper().strip()
+    allowed = {"BTC", "ETH", "SOL"}
+    if normalized not in allowed:
+        return {"verdict": "BLOCKED", "reason": "asset not enabled", "allowed_assets": sorted(allowed)}
+    return await validate_liquidations(normalized, runs)
