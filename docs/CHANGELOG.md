@@ -13,3 +13,11 @@
 - Added gitleaks and pip-audit CI gates.
 
 No mainnet settlement, outgoing spending, or wallet signing was enabled.
+
+### Phase 2 — reliable infrastructure
+- Added Alembic and an initial schema migration.
+- Production now rejects SQLite and no longer creates tables at API startup.
+- Added configurable Postgres pooling/timeouts.
+- Added bounded worker failure handling with exponential backoff.
+- Added readiness checks for database connectivity and worker freshness.
+- Documented daily backups and restoration drills.
