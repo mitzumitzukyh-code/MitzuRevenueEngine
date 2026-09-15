@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     worker_max_consecutive_failures: int = 5
     worker_backoff_max_seconds: int = 300
     worker_stale_after_seconds: int = 1800
+    telegram_bot_token: SecretStr = SecretStr("")
+    telegram_chat_id: str = ""
+    telegram_enabled: bool = False
+    facilitator_health_url: str = ""
     admin_key: SecretStr = SecretStr("")
     public_base_url: str = ""
     cors_origins: str = ""
