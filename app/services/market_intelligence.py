@@ -12,6 +12,18 @@ def category_competitors(db: Session, category: str) -> int:
         .where(OpportunityRecord.category == category)
     ) or 0
 
+def latest_signals(db: Session, categories: list[str]) -> dict[str, MarketSignal]:
+    if not categories:
+        return {}
+    metrics = db.scalars(select(MarketMetric).where(MarketMetric.category.in_(categories)).order_by(MarketMetric.category, MarketMetric.created_at.desc())).all()
+    latest = {}
+    for row in metrics:
+        latest.setdefault(row.category, row)
+    competitor_rows = db.execute(select(OpportunityRecord.category, func.count(func.distinct(OpportunityRecord.source + ":" + OpportunityRecord.provider))).where(OpportunityRecord.category.in_(categories)).group_by(OpportunityRecord.category)).all()
+    competitors = {category: count for category, count in competitor_rows}
+    return {category: MarketSignal(buyers_30d=row.buyers_30d, transactions_30d=row.transactions_30d, volume_30d_usd=row.volume_30d_usd, competitors=competitors.get(category, 0)) for category, row in latest.items()}
+
+
 def latest_signal(db: Session, category: str) -> MarketSignal | None:
     row = db.scalars(
         select(MarketMetric)
