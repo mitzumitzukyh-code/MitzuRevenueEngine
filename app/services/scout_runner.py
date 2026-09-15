@@ -30,9 +30,20 @@ class ScoutRunner:
             db.close()
 
     async def run_forever(self):
+        failures = 0
         while True:
             try:
                 await self.run_once()
-            except Exception:
-                pass
-            await asyncio.sleep(max(settings.scout_interval_seconds, 60))
+                failures = 0
+                delay = max(settings.scout_interval_seconds, 60)
+            except Exception as exc:
+                failures += 1
+                db = SessionLocal()
+                try:
+                    record_event(db, kind="worker_failure", worker="scout", message=f"consecutive_failures={failures} error={type(exc).__name__}", is_error=True)
+                finally:
+                    db.close()
+                if failures >= settings.worker_max_consecutive_failures:
+                    raise RuntimeError("scout exceeded consecutive failure limit") from exc
+                delay = min(2 ** failures, settings.worker_backoff_max_seconds)
+            await asyncio.sleep(delay)
