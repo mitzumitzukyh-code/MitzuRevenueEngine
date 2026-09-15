@@ -3,12 +3,14 @@ from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.security import public_base_url, require_admin
+from app.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
 from app.x402_dry_run import dry_run_payment_required
 from app.x402_accepts_preview import build_accepts_preview
 from app.commercial_readiness import assess_commercial_readiness
@@ -30,6 +32,12 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Mitzu Revenue Engine", version="0.1.0", lifespan=lifespan)
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
+_cors_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
+if _cors_origins:
+    app.add_middleware(CORSMiddleware, allow_origins=_cors_origins, allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["Content-Type", "X-Admin-Key", "PAYMENT-SIGNATURE"])
 
 @app.get("/", include_in_schema=False)
 def dashboard():
@@ -331,7 +339,7 @@ def liquidations_commercial_readiness():
 
 
 @app.get("/api/paid/liquidations/{asset}")
-async def paid_liquidations_dry_run(asset: str, request: Request):
+async def paid_liquidations_dry_run(asset: str):
     normalized = asset.upper().strip()
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
@@ -349,7 +357,7 @@ async def paid_liquidations_dry_run(asset: str, request: Request):
 
 
 @app.get("/api/testnet/paid/liquidations/{asset}")
-async def testnet_paid_liquidations(asset: str, request: Request):
+async def testnet_paid_liquidations(asset: str):
     normalized = asset.upper().strip()
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
