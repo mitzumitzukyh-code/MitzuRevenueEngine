@@ -17,3 +17,10 @@ def test_invalid_receiver_is_not_inserted():
     result = preview_payment_offer("bad")
     assert result["offer"]["payTo"] is None
     assert "receiver_wallet_not_configured_or_invalid" in result["blockers"]
+
+
+def test_default_receiver_is_public_address_only():
+    result = preview_payment_offer()
+    assert result["offer"]["payTo"] == "0xd108F49ca29eb1515aE28F345FCa29423F7Bb1d7"
+    assert result["advertised_to_clients"] is False
+    assert result["settlement_enabled"] is False

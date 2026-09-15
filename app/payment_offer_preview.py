@@ -1,8 +1,11 @@
 """Preview a future x402 payment offer without making it payable."""
+
 from app.payment_readiness import EVM_ADDRESS
 
+DEFAULT_TESTNET_RECEIVER = "0xd108F49ca29eb1515aE28F345FCa29423F7Bb1d7"
 
-def preview_payment_offer(receiver: str | None, price_atomic: str = "5000") -> dict:
+
+def preview_payment_offer(receiver: str | None = DEFAULT_TESTNET_RECEIVER, price_atomic: str = "5000") -> dict:
     valid = bool(receiver and EVM_ADDRESS.fullmatch(receiver))
     offer = {
         "scheme": "exact",
