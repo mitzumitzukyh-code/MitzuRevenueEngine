@@ -1,8 +1,8 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr\nfrom pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_env: str = "development"
-    database_url: str = "sqlite:///./mitzu_revenue.db"
+    database_url: str = "sqlite:///./mitzu_revenue.db"\n    admin_key: SecretStr = SecretStr("")\n    public_base_url: str = ""
     max_daily_spend_usd: float = 5.0
     max_task_cost_usd: float = 1.0
     min_expected_profit_usd: float = 1.0
