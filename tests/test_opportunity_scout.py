@@ -14,8 +14,8 @@ def test_rejects_spam_trading_and_low_probability():
 
 def test_ranks_by_expected_value():
     jobs = [
-        BountyOpportunity("a", "small", 10, True, success_probability=.9, estimated_ai_cost_usd=1),
-        BountyOpportunity("b", "better", 20, True, success_probability=.8, estimated_ai_cost_usd=2),
+        BountyOpportunity("a", "small", 10, True, success_probability=.9, estimated_ai_cost_usd=1, verified_funding_usd=10, repo_active=True, payout_terms_clear=True),
+        BountyOpportunity("b", "better", 20, True, success_probability=.8, estimated_ai_cost_usd=2, verified_funding_usd=20, repo_active=True, payout_terms_clear=True),
     ]
     assert [x["title"] for x in rank(jobs)] == ["better", "small"]
 
