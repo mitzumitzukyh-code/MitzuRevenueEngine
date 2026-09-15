@@ -1,4 +1,6 @@
-"""Preview a future x402 payment offer without making it payable."""\n\nDEFAULT_TESTNET_RECEIVER = "0xd108F49ca29eb1515aE28F345FCa29423F7Bb1d7"
+"""Preview a future x402 payment offer without making it payable."""
+
+DEFAULT_TESTNET_RECEIVER = "0xd108F49ca29eb1515aE28F345FCa29423F7Bb1d7"
 from app.payment_readiness import EVM_ADDRESS
 
 
