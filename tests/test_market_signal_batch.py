@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.db import Base
 from app.models import MarketMetric, OpportunityRecord
-from app.services.market_intelligence import latest_signals
+from app.services.market_intelligence_service import latest_signals
 
 
 def test_latest_signals_counts_unique_source_provider_pairs():
