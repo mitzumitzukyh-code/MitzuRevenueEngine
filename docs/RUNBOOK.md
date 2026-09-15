@@ -17,3 +17,12 @@ Every PR must pass ruff, pytest, pip-audit and gitleaks. Gitleaks checks full hi
 ## Production payment safety
 
 This phase does not enable mainnet settlement. Keep autonomous spending, wallet signing and outgoing transactions disabled. Public receive-only addresses are not secrets; private keys, seeds and signer credentials must never be placed in this service.
+
+
+## Database migrations and backup
+
+Production schema changes are applied with `alembic upgrade head` before application rollout. The API does not call `create_all` in production.
+
+PostgreSQL backups must run daily using `pg_dump --format=custom` to encrypted deployment storage with retention appropriate to the hosting environment. Do not commit dumps or credentials. At least monthly, restore the newest backup into an isolated non-production Postgres instance using `pg_restore --clean --if-exists`, run `alembic upgrade head`, and verify row counts plus `/ready` before recording the restore drill as successful.
+
+`/health` is process liveness. `/ready` checks database connectivity and worker freshness; a stale required worker returns 503.
