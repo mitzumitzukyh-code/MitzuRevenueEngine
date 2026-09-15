@@ -14,8 +14,10 @@ def test_json_formatter_contains_request_id():
 
 
 def test_request_id_is_returned():
-    app = FastAPI(); app.add_middleware(RequestIdMiddleware)
+    app = FastAPI()
+    app.add_middleware(RequestIdMiddleware)
     @app.get("/")
-    def root(): return {"ok": True}
+    def root():
+        return {"ok": True}
     response = TestClient(app).get("/", headers={"X-Request-ID": "abc-123"})
     assert response.headers["X-Request-ID"] == "abc-123"
