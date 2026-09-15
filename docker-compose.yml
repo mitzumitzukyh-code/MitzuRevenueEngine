@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg://mitzu:mitzu@db:5432/mitzu
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?set POSTGRES_USER}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:?set POSTGRES_DB}
       AUTONOMOUS_EXECUTION: "false"
       WALLET_ENABLED: "false"
     depends_on:
@@ -13,7 +13,7 @@ services:
     build: .
     command: ["python", "-m", "app.scout_main"]
     environment:
-      DATABASE_URL: postgresql+psycopg://mitzu:mitzu@db:5432/mitzu
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?set POSTGRES_USER}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:?set POSTGRES_DB}
       SCOUT_ENABLED: "true"
       SCOUT_INTERVAL_SECONDS: "900"
       AUTONOMOUS_EXECUTION: "false"
@@ -25,7 +25,7 @@ services:
     build: .
     command: ["python", "-m", "app.market_main"]
     environment:
-      DATABASE_URL: postgresql+psycopg://mitzu:mitzu@db:5432/mitzu
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?set POSTGRES_USER}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:?set POSTGRES_DB}
       MARKET_SCAN_INTERVAL_SECONDS: "3600"
       AUTONOMOUS_EXECUTION: "false"
       WALLET_ENABLED: "false"
@@ -35,9 +35,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: mitzu
-      POSTGRES_PASSWORD: mitzu
-      POSTGRES_DB: mitzu
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB}
     volumes:
       - mitzu-db:/var/lib/postgresql/data
 volumes:

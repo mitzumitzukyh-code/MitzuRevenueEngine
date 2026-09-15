@@ -3,11 +3,15 @@ from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+import logging
 
 from app.config import settings
+from app.security import public_base_url, require_admin
+from app.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
 from app.x402_dry_run import dry_run_payment_required
 from app.x402_accepts_preview import build_accepts_preview
 from app.commercial_readiness import assess_commercial_readiness
@@ -28,7 +32,19 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 
+logger = logging.getLogger("mitzu.api")
 app = FastAPI(title="Mitzu Revenue Engine", version="0.1.0", lifespan=lifespan)
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("unhandled request failure path=%s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "internal server error"})
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
+_cors_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
+if _cors_origins:
+    app.add_middleware(CORSMiddleware, allow_origins=_cors_origins, allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["Content-Type", "X-Admin-Key", "PAYMENT-SIGNATURE"])
 
 @app.get("/", include_in_schema=False)
 def dashboard():
@@ -116,7 +132,7 @@ class MarketMetricIn(BaseModel):
     volume_30d_usd: float = 0
 
 @app.post("/api/market/metrics")
-def add_market_metric(payload: MarketMetricIn, db: Session = Depends(get_db)):
+def add_market_metric(payload: MarketMetricIn, db: Session = Depends(get_db), _: None = Depends(require_admin)):
     row = MarketMetric(
         source=payload.source,
         category=payload.category,
@@ -233,7 +249,7 @@ def sandbox_health(category: str, db: Session = Depends(get_db)):
 
 
 @app.post("/api/sandbox/{category}/run")
-def sandbox_run(category: str, request: SandboxRequest, db: Session = Depends(get_db)):
+def sandbox_run(category: str, request: SandboxRequest, db: Session = Depends(get_db), _: None = Depends(require_admin)):
     result = run_category(db, category, request.payload)
     return result or {
         "status": "blocked",
@@ -243,7 +259,7 @@ def sandbox_run(category: str, request: SandboxRequest, db: Session = Depends(ge
 
 
 @app.post("/api/evaluation/{category}")
-def evaluate_service(category: str, requests: int = 100, db: Session = Depends(get_db)):
+def evaluate_service(category: str, requests: int = 100, db: Session = Depends(get_db), _: None = Depends(require_admin)):
     requests = max(1, min(requests, 1000))
     result = evaluate_category(db, category, requests)
     return result or {
@@ -283,7 +299,7 @@ def market_research_candidates(db: Session = Depends(get_db)):
 
 
 @app.get("/api/research/liquidations/source-probe")
-async def liquidations_source_probe():
+async def liquidations_source_probe(_: None = Depends(require_admin)):
     return {
         "mode": "READ_ONLY",
         "trading": False,
@@ -294,7 +310,7 @@ async def liquidations_source_probe():
 
 
 @app.get("/api/prototype/liquidations/{asset}")
-async def liquidations_prototype(asset: str):
+async def liquidations_prototype(asset: str, _: None = Depends(require_admin)):
     normalized = asset.upper().strip()
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
@@ -307,7 +323,7 @@ async def liquidations_prototype(asset: str):
 
 
 @app.get("/api/validation/liquidations/{asset}")
-async def validate_liquidations_product(asset: str, runs: int = 5):
+async def validate_liquidations_product(asset: str, runs: int = 5, _: None = Depends(require_admin)):
     normalized = asset.upper().strip()
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
@@ -330,13 +346,13 @@ def liquidations_commercial_readiness():
 
 
 @app.get("/api/paid/liquidations/{asset}")
-async def paid_liquidations_dry_run(asset: str, request: Request):
+async def paid_liquidations_dry_run(asset: str):
     normalized = asset.upper().strip()
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
         raise HTTPException(status_code=404, detail="asset not enabled")
-    public_base_url = str(request.base_url).replace("http://", "https://", 1)
-    requirement, encoded = dry_run_payment_required(public_base_url, normalized)
+    trusted_base_url = public_base_url()
+    requirement, encoded = dry_run_payment_required(trusted_base_url, normalized)
     return JSONResponse(
         status_code=402,
         content=requirement,
@@ -348,16 +364,16 @@ async def paid_liquidations_dry_run(asset: str, request: Request):
 
 
 @app.get("/api/testnet/paid/liquidations/{asset}")
-async def testnet_paid_liquidations(asset: str, request: Request):
+async def testnet_paid_liquidations(asset: str):
     normalized = asset.upper().strip()
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
         raise HTTPException(status_code=404, detail="asset not enabled")
-    public_base_url = str(request.base_url).replace("http://", "https://", 1)
-    requirement, _ = dry_run_payment_required(public_base_url, normalized)
+    trusted_base_url = public_base_url()
+    requirement, _ = dry_run_payment_required(trusted_base_url, normalized)
     preview = build_accepts_preview()
     requirement["resource"]["url"] = (
-        f"{public_base_url.rstrip('/')}/api/testnet/paid/liquidations/{normalized}"
+        f"{trusted_base_url}/api/testnet/paid/liquidations/{normalized}"
     )
     requirement["accepts"] = preview["accepts"]
     requirement["extensions"]["mitzuDryRun"].update({
