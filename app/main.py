@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.commercial_readiness import assess_commercial_readiness
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
 from app.services.liquidations_probe import probe_liquidation_sources
@@ -310,3 +311,17 @@ async def validate_liquidations_product(asset: str, runs: int = 5):
     if normalized not in allowed:
         return {"verdict": "BLOCKED", "reason": "asset not enabled", "allowed_assets": sorted(allowed)}
     return await validate_liquidations(normalized, runs)
+
+
+@app.get("/api/commercial-readiness/liquidations")
+def liquidations_commercial_readiness():
+    return assess_commercial_readiness(
+        product="liquidations",
+        technical_validation="PASS",
+        methodology_truthful=True,
+        observed_market_demand=True,
+        source_cost_verified=True,
+        fixed_costs_accounted=False,
+        pricing_validated=False,
+        payment_path_validated=False,
+    )
