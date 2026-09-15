@@ -19,6 +19,11 @@ class BountyOpportunity:
     requires_spam: bool = False
     requires_trading: bool = False
     requires_deposit: bool = False
+    verified_funding_usd: float = 0.0
+    competing_claims: int = 0
+    repo_active: bool = False
+    payout_terms_clear: bool = False
+    secret_exfiltration_risk: bool = False
 
     @property
     def expected_value_usd(self) -> float:
@@ -34,12 +39,17 @@ class BountyOpportunity:
 def eligible(job: BountyOpportunity) -> bool:
     return bool(
         job.funded
+        and job.verified_funding_usd >= job.payout_usd
         and job.payout_usd >= 5
         and job.capital_required_usd == 0
         and job.success_probability >= 0.70
         and not job.requires_spam
         and not job.requires_trading
+        and job.repo_active
+        and job.payout_terms_clear
+        and job.competing_claims <= 3
         and not job.requires_deposit
+        and not job.secret_exfiltration_risk
     )
 
 
