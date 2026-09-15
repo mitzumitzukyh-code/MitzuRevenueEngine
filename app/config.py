@@ -4,6 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite:///./mitzu_revenue.db"
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout_seconds: int = 10
+    worker_max_consecutive_failures: int = 5
+    worker_backoff_max_seconds: int = 300
+    worker_stale_after_seconds: int = 1800
     admin_key: SecretStr = SecretStr("")
     public_base_url: str = ""
     cors_origins: str = ""
