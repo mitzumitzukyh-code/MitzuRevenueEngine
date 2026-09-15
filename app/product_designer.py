@@ -8,46 +8,38 @@ class ProductPlan:
     category: str
     product_name: str
     unit_price_usd: float
-    estimated_unit_cost_usd: float
-    gross_margin_pct: float
-    target_monthly_calls: int
-    projected_monthly_revenue_usd: float
-    projected_monthly_cost_usd: float
-    projected_monthly_profit_usd: float
+    estimated_unit_cost_usd: float | None
+    cost_basis: str
+    gross_margin_pct: float | None
+    target_monthly_calls: int | None
+    projected_monthly_revenue_usd: float | None
+    projected_monthly_cost_usd: float | None
+    projected_monthly_profit_usd: float | None
+    projection_status: str
     rationale: str
 
 
-def _pricing_from_market(signal: MarketSignal) -> tuple[float, float]:
+def _price_from_market(signal: MarketSignal) -> float:
     if signal.transactions_30d <= 0 or signal.volume_30d_usd <= 0:
-        return 0.01, 0.002
+        return 0.01
     observed_avg = signal.volume_30d_usd / signal.transactions_30d
-    price = max(0.001, min(round(observed_avg * 0.85, 6), 1.0))
-    cost = max(0.0001, min(round(price * 0.2, 6), price * 0.5))
-    return price, cost
+    return max(0.001, min(round(observed_avg * 0.85, 6), 1.0))
 
 
 def design(category: str, signal: MarketSignal) -> ProductPlan:
-    price, cost = _pricing_from_market(signal)
-    target_calls = max(100, min(signal.transactions_30d // max(signal.competitors, 1), 10000))
-    revenue = round(target_calls * price, 2)
-    monthly_cost = round(target_calls * cost, 2)
-    profit = round(revenue - monthly_cost, 2)
-    margin = round(((price - cost) / price) * 100, 1) if price > 0 else 0.0
+    price = _price_from_market(signal)
     clean = category.strip() or "General"
-    product_name = f"Mitzu {clean.title()} API"
-    rationale = (
-        f"Targets {target_calls} calls/month at $" + f"{price:.4f}/call with "
-        f"estimated {margin:.1f}% gross margin based on observed category economics."
-    )
     return ProductPlan(
         category=clean,
-        product_name=product_name,
+        product_name=f"Mitzu {clean.title()} API",
         unit_price_usd=price,
-        estimated_unit_cost_usd=cost,
-        gross_margin_pct=margin,
-        target_monthly_calls=target_calls,
-        projected_monthly_revenue_usd=revenue,
-        projected_monthly_cost_usd=monthly_cost,
-        projected_monthly_profit_usd=profit,
-        rationale=rationale,
+        estimated_unit_cost_usd=None,
+        cost_basis="UNKNOWN_UNTIL_MEASURED",
+        gross_margin_pct=None,
+        target_monthly_calls=None,
+        projected_monthly_revenue_usd=None,
+        projected_monthly_cost_usd=None,
+        projected_monthly_profit_usd=None,
+        projection_status="UNKNOWN",
+        rationale="Price is derived from observed market transaction economics; costs and demand targets remain UNKNOWN until measured.",
     )
