@@ -9,8 +9,8 @@ def test_preview_never_advertises_or_settles():
     assert result["offer"]["network"] == "eip155:84532"
     assert result["offer"]["scheme"] == "exact"
     assert result["offer"]["amount"] == "5000"
-    assert result["offer"]["asset"] is None
-    assert "testnet_asset_contract_not_verified" in result["blockers"]
+    assert result["offer"]["asset"] == "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+    assert "testnet_asset_contract_not_verified" not in result["blockers"]
 
 
 def test_invalid_receiver_is_not_inserted():

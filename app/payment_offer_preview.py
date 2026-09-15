@@ -8,11 +8,12 @@ def preview_payment_offer(receiver: str | None, price_atomic: str = "5000") -> d
         "scheme": "exact",
         "network": "eip155:84532",
         "amount": price_atomic,
-        "asset": None,
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
         "payTo": receiver if valid else None,
         "maxTimeoutSeconds": 60,
         "extra": {
             "currency": "USDC_TESTNET",
+            "assetEvidence": "Circle official Base Sepolia USDC contract",
             "priceUsdHypothesis": "0.005",
         },
     }
@@ -23,7 +24,6 @@ def preview_payment_offer(receiver: str | None, price_atomic: str = "5000") -> d
         "offer": offer,
         "blockers": [
             *([] if valid else ["receiver_wallet_not_configured_or_invalid"]),
-            "testnet_asset_contract_not_verified",
             "settlement_disabled",
         ],
     }
