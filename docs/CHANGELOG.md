@@ -27,3 +27,8 @@ No mainnet settlement, outgoing spending, or wallet signing was enabled.
 - Commercial readiness now defaults unmeasured evidence to UNKNOWN and remains NOT_SELLABLE.
 - Competition counts unique source/provider pairs instead of raw records.
 - Renamed the bounty model to BountyOpportunity to distinguish it from the domain Opportunity model.
+
+### Phase 4 — valuable product research
+- Reviewed market-data redistribution constraints before collector implementation.
+- Coinbase and Deribit are excluded from the paid product absent written permission; Binance and Kraken remain excluded until affirmative commercial redistribution rights are verified.
+- Collector implementation is intentionally blocked at the Phase 4 human gate rather than building against legally unsuitable data sources.
