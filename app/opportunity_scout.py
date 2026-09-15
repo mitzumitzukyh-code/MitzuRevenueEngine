@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass
 
 
 @dataclass(frozen=True)
-class Opportunity:
+class BountyOpportunity:
     source: str
     title: str
     payout_usd: float
@@ -31,7 +31,7 @@ class Opportunity:
         )
 
 
-def eligible(job: Opportunity) -> bool:
+def eligible(job: BountyOpportunity) -> bool:
     return bool(
         job.funded
         and job.payout_usd >= 5
@@ -43,7 +43,7 @@ def eligible(job: Opportunity) -> bool:
     )
 
 
-def rank(jobs: list[Opportunity]) -> list[dict]:
+def rank(jobs: list[BountyOpportunity]) -> list[dict]:
     accepted = [job for job in jobs if eligible(job)]
     accepted.sort(key=lambda job: job.expected_value_usd, reverse=True)
     return [
