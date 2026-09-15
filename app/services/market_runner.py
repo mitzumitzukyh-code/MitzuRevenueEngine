@@ -48,9 +48,20 @@ class MarketRunner:
             db.close()
 
     async def run_forever(self):
+        failures = 0
         while True:
             try:
                 await self.run_once()
-            except Exception:
-                pass
-            await asyncio.sleep(max(settings.market_scan_interval_seconds, 300))
+                failures = 0
+                delay = max(settings.market_scan_interval_seconds, 300)
+            except Exception as exc:
+                failures += 1
+                db = SessionLocal()
+                try:
+                    record_event(db, kind="worker_failure", worker="market", message=f"consecutive_failures={failures} error={type(exc).__name__}", is_error=True)
+                finally:
+                    db.close()
+                if failures >= settings.worker_max_consecutive_failures:
+                    raise RuntimeError("market exceeded consecutive failure limit") from exc
+                delay = min(2 ** failures, settings.worker_backoff_max_seconds)
+            await asyncio.sleep(delay)
