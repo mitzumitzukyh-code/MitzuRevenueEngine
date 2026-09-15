@@ -368,9 +368,9 @@ def liquidations_commercial_readiness():
     return assess_commercial_readiness(
         product="liquidations",
         technical_validation="UNKNOWN",
-        methodology_truthful=False,
-        observed_market_demand=False,
-        source_cost_verified=False,
+        methodology_truthful=None,
+        observed_market_demand=None,
+        source_cost_verified=None,
         fixed_costs_accounted=False,
         pricing_validated=False,
         payment_path_validated=False,
