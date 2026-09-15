@@ -22,12 +22,12 @@ from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityReco
 from app.services.liquidations_probe import probe_liquidation_sources
 from app.services.liquidations_prototype import liquidation_snapshot
 from app.services.prototype_validation import validate_liquidations
-from app.services.market_intelligence import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
-from app.services.product_opportunities import design_for_category
-from app.services.service_factory import blueprint_for_category
+from app.services.market_intelligence_service import build_candidate, classify_market, latest_signal, research_candidate, research_priority, score_category
+from app.services.product_opportunities_service import design_for_category
+from app.services.service_factory_service import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
-from app.services.evaluation_lab import evaluate_category
-from app.services.deployment_planner import staging_plan
+from app.services.evaluation_service import evaluate_category
+from app.services.deployment_planner_service import staging_plan
 import httpx
 
 @asynccontextmanager
