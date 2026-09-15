@@ -334,7 +334,8 @@ async def paid_liquidations_dry_run(asset: str, request: Request):
     allowed = {"BTC", "ETH", "SOL"}
     if normalized not in allowed:
         raise HTTPException(status_code=404, detail="asset not enabled")
-    public_base_url = str(request.base_url).replace("http://", "https://", 1)\n    requirement, encoded = dry_run_payment_required(public_base_url, normalized)
+    public_base_url = str(request.base_url).replace("http://", "https://", 1)
+    requirement, encoded = dry_run_payment_required(public_base_url, normalized)
     return JSONResponse(
         status_code=402,
         content=requirement,
