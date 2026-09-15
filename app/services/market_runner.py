@@ -24,15 +24,21 @@ class MarketRunner:
         summary = {}
         try:
             for adapter in self.adapters:
-                items = await adapter.discover()
-                created = 0
-                for item in items:
-                    _, is_new = ingest(db, item)
-                    created += int(is_new)
-                summary[adapter.name] = {"seen": len(items), "new": created}
-                message = f"{adapter.name} scan complete: {len(items)} seen, {created} new"
-                record_event(db, kind="market_scan", worker="market", message=message)
-                print(message, flush=True)
+                try:
+                    items = await adapter.discover()
+                    created = 0
+                    for item in items:
+                        _, is_new = ingest(db, item)
+                        created += int(is_new)
+                    summary[adapter.name] = {"seen": len(items), "new": created}
+                    message = f"{adapter.name} scan complete: {len(items)} seen, {created} new"
+                    record_event(db, kind="market_scan", worker="market", message=message)
+                    print(message, flush=True)
+                except Exception as exc:
+                    db.rollback()
+                    summary[adapter.name] = {"error": type(exc).__name__}
+                    record_event(db, kind="adapter_error", worker="market", message=f"adapter={adapter.name} error={type(exc).__name__}", is_error=True)
+                    continue
 
             categories = rebuild_coinbase_category_metrics(db)
             message = f"Coinbase demand metrics refreshed for {categories} categories"
@@ -48,9 +54,20 @@ class MarketRunner:
             db.close()
 
     async def run_forever(self):
+        failures = 0
         while True:
             try:
                 await self.run_once()
-            except Exception:
-                pass
-            await asyncio.sleep(max(settings.market_scan_interval_seconds, 300))
+                failures = 0
+                delay = max(settings.market_scan_interval_seconds, 300)
+            except Exception as exc:
+                failures += 1
+                db = SessionLocal()
+                try:
+                    record_event(db, kind="worker_failure", worker="market", message=f"consecutive_failures={failures} error={type(exc).__name__}", is_error=True)
+                finally:
+                    db.close()
+                if failures >= settings.worker_max_consecutive_failures:
+                    raise RuntimeError("market exceeded consecutive failure limit") from exc
+                delay = min(2 ** failures, settings.worker_backoff_max_seconds)
+            await asyncio.sleep(delay)

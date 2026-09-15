@@ -5,13 +5,14 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 import logging
 
 from app.config import settings
 from app.security import public_base_url, require_admin
 from app.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
+from app.logging_config import RequestIdMiddleware, configure_logging
 from app.x402_dry_run import dry_run_payment_required
 from app.x402_accepts_preview import build_accepts_preview
 from app.commercial_readiness import assess_commercial_readiness
@@ -26,12 +27,14 @@ from app.services.service_factory import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
 from app.services.evaluation_lab import evaluate_category
 from app.services.deployment_planner import staging_plan
+import httpx
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     yield
 
+configure_logging()
 logger = logging.getLogger("mitzu.api")
 app = FastAPI(title="Mitzu Revenue Engine", version="0.1.0", lifespan=lifespan)
 
@@ -41,6 +44,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestIdMiddleware)
 app.add_middleware(RateLimitMiddleware)
 _cors_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
 if _cors_origins:
@@ -65,6 +69,34 @@ def health():
         "autonomous_execution": settings.autonomous_execution,
         "wallet_enabled": settings.wallet_enabled,
     }
+
+@app.get("/ready")
+def ready(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(status_code=503, detail="database unavailable") from None
+    workers = ["scout", "market"]
+    now = datetime.now(timezone.utc)
+    stale = []
+    for worker in workers:
+        last = db.scalars(select(ActivityEvent).where(ActivityEvent.worker == worker).order_by(ActivityEvent.created_at.desc()).limit(1)).first()
+        if last is None:
+            stale.append(worker)
+            continue
+        seen = last.created_at if last.created_at.tzinfo else last.created_at.replace(tzinfo=timezone.utc)
+        if (now - seen).total_seconds() > settings.worker_stale_after_seconds:
+            stale.append(worker)
+    if stale:
+        raise HTTPException(status_code=503, detail="workers not ready")
+    if settings.facilitator_health_url:
+        try:
+            response = httpx.get(settings.facilitator_health_url, timeout=3.0)
+            if response.status_code >= 500:
+                raise HTTPException(status_code=503, detail="facilitator unavailable")
+        except httpx.HTTPError:
+            raise HTTPException(status_code=503, detail="facilitator unavailable") from None
+    return {"status": "ready"}
 
 @app.get("/api/dashboard/summary")
 def dashboard_summary(db: Session = Depends(get_db)):
