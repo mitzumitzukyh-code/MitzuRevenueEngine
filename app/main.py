@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.x402_dry_run import dry_run_payment_required
 from app.commercial_readiness import assess_commercial_readiness
 from app.db import SessionLocal, init_db
 from app.models import ActivityEvent, LedgerEntry, MarketMetric, OpportunityRecord
@@ -324,4 +325,21 @@ def liquidations_commercial_readiness():
         fixed_costs_accounted=False,
         pricing_validated=False,
         payment_path_validated=False,
+    )
+
+
+@app.get("/api/paid/liquidations/{asset}")
+async def paid_liquidations_dry_run(asset: str, request: Request):
+    normalized = asset.upper().strip()
+    allowed = {"BTC", "ETH", "SOL"}
+    if normalized not in allowed:
+        raise HTTPException(status_code=404, detail="asset not enabled")
+    requirement, encoded = dry_run_payment_required(str(request.base_url), normalized)
+    return JSONResponse(
+        status_code=402,
+        content=requirement,
+        headers={
+            "PAYMENT-REQUIRED": encoded,
+            "X-MITZU-X402-MODE": "DRY_RUN_NO_SETTLEMENT",
+        },
     )
