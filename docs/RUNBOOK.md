@@ -26,3 +26,10 @@ Production schema changes are applied with `alembic upgrade head` before applica
 PostgreSQL backups must run daily using `pg_dump --format=custom` to encrypted deployment storage with retention appropriate to the hosting environment. Do not commit dumps or credentials. At least monthly, restore the newest backup into an isolated non-production Postgres instance using `pg_restore --clean --if-exists`, run `alembic upgrade head`, and verify row counts plus `/ready` before recording the restore drill as successful.
 
 `/health` is process liveness. `/ready` checks database connectivity and worker freshness; a stale required worker returns 503.
+
+
+## Telegram alerts
+
+Telegram is opt-in. Set TELEGRAM_ENABLED=true plus TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID only in the deployment secret store. Test delivery after deployment without printing the token. Alert delivery failure must never enable spending or alter ledger state.
+
+Operational alert conditions for the production deployment are: required worker stale beyond WORKER_STALE_AFTER_SECONDS; repeated worker failures reaching the configured limit; elevated API/adapter error rate; verified payment whose settlement later fails; kill switch activation; and the daily revenue/cost summary. Payment-specific alerts are wired when settlement exists in Phase 5; this phase only provides the notification transport.
