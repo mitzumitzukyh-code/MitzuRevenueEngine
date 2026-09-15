@@ -12,6 +12,7 @@ import logging
 from app.config import settings
 from app.security import public_base_url, require_admin
 from app.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
+from app.logging_config import RequestIdMiddleware, configure_logging
 from app.x402_dry_run import dry_run_payment_required
 from app.x402_accepts_preview import build_accepts_preview
 from app.commercial_readiness import assess_commercial_readiness
@@ -32,6 +33,7 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 
+configure_logging()
 logger = logging.getLogger("mitzu.api")
 app = FastAPI(title="Mitzu Revenue Engine", version="0.1.0", lifespan=lifespan)
 
@@ -41,6 +43,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestIdMiddleware)
 app.add_middleware(RateLimitMiddleware)
 _cors_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
 if _cors_origins:
