@@ -1,8 +1,11 @@
-from pydantic import SecretStr\nfrom pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_env: str = "development"
-    database_url: str = "sqlite:///./mitzu_revenue.db"\n    admin_key: SecretStr = SecretStr("")\n    public_base_url: str = ""
+    database_url: str = "sqlite:///./mitzu_revenue.db"
+    admin_key: SecretStr = SecretStr("")
+    public_base_url: str = ""
     cors_origins: str = ""
     default_rate_limit_per_minute: int = 120
     prepayment_rate_limit_per_minute: int = 20
