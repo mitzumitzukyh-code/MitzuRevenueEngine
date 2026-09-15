@@ -2,11 +2,13 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+import logging
 
 from app.config import settings
 from app.security import public_base_url, require_admin
@@ -31,7 +33,13 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 
+logger = logging.getLogger("mitzu.api")
 app = FastAPI(title="Mitzu Revenue Engine", version="0.1.0", lifespan=lifespan)
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("unhandled request failure path=%s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
