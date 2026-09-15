@@ -27,6 +27,7 @@ from app.services.service_factory import blueprint_for_category
 from app.services.sandbox_runtime import health_category, run_category
 from app.services.evaluation_lab import evaluate_category
 from app.services.deployment_planner import staging_plan
+import httpx
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -88,6 +89,13 @@ def ready(db: Session = Depends(get_db)):
             stale.append(worker)
     if stale:
         raise HTTPException(status_code=503, detail="workers not ready")
+    if settings.facilitator_health_url:
+        try:
+            response = httpx.get(settings.facilitator_health_url, timeout=3.0)
+            if response.status_code >= 500:
+                raise HTTPException(status_code=503, detail="facilitator unavailable")
+        except httpx.HTTPError:
+            raise HTTPException(status_code=503, detail="facilitator unavailable") from None
     return {"status": "ready"}
 
 @app.get("/api/dashboard/summary")
